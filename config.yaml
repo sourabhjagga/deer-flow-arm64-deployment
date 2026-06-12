@@ -1,0 +1,60 @@
+# DeerFlow Configuration for Oracle VM ARM64 - HOST ACCESS MODE
+# SECURITY WARNING: Agent has direct access to Oracle VM filesystem
+# Set allow_host_bash: true enables bash commands on host
+
+models:
+  - name: 9router-gateway
+    use: langchain_openai:ChatOpenAI
+    model: ${NINE_ROUTER_MODEL:-gpt-4}
+    api_key: ${NINE_ROUTER_API_KEY}
+    base_url: ${NINE_ROUTER_BASE_URL:-http://localhost:9000/v1}
+    max_tokens: 8192
+    supports_vision: true
+    default_request_timeout: 600.0
+    max_retries: 2
+
+# SECURITY: LocalSandboxProvider - Agent has DIRECT ACCESS to Oracle VM
+# Set allow_host_bash: true to enable bash commands on host filesystem
+sandbox:
+  use: deerflow.sandbox.local:LocalSandboxProvider
+  allow_host_bash: true
+
+# All tools enabled
+tools:
+  # Web search (free, no API key needed)
+  - use: deerflow.community.ddg_search.tools:web_search_tool
+  
+  # Web fetch (page content extraction)
+  - use: deerflow.community.jina_ai.tools:web_fetch_tool
+  
+  # Image search
+  - use: deerflow.community.image_search.tools:image_search_tool
+  
+  # File operations
+  - use: deerflow.sandbox.tools:ls_tool
+  - use: deerflow.sandbox.tools:read_file_tool
+  - use: deerflow.sandbox.tools:glob_tool
+  - use: deerflow.sandbox.tools:grep_tool
+  - use: deerflow.sandbox.tools:write_file_tool
+  - use: deerflow.sandbox.tools:str_replace_tool
+  
+  # Bash execution (runs directly on host - requires allow_host_bash: true)
+  - use: deerflow.sandbox.tools:bash_tool
+
+# Long-term memory enabled
+memory:
+  enabled: true
+  storage_path: memory.json
+  debounce_seconds: 30
+  max_facts: 100
+  injection_enabled: true
+  max_injection_tokens: 2000
+
+# Thread state persistence (survives restarts)
+checkpointer:
+  type: sqlite
+  connection_string: checkpoints.db
+
+# Skills configuration (17 built-in skills auto-loaded)
+skills:
+  container_path: /mnt/skills
