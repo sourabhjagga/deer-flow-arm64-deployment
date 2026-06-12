@@ -71,20 +71,45 @@ services:
       echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
       echo "    max_tokens: 8192" >> /app/backend/config.yaml
       echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "tool_groups:" >> /app/backend/config.yaml
+      echo "  - name: web" >> /app/backend/config.yaml
+      echo "  - name: file:read" >> /app/backend/config.yaml
+      echo "  - name: file:write" >> /app/backend/config.yaml
+      echo "  - name: bash" >> /app/backend/config.yaml
       echo "sandbox:" >> /app/backend/config.yaml
       echo "  use: deerflow.sandbox.local:LocalSandboxProvider" >> /app/backend/config.yaml
       echo "  allow_host_bash: true" >> /app/backend/config.yaml
       echo "tools:" >> /app/backend/config.yaml
-      echo "  - use: deerflow.community.ddg_search.tools:web_search_tool" >> /app/backend/config.yaml
-      echo "  - use: deerflow.community.jina_ai.tools:web_fetch_tool" >> /app/backend/config.yaml
-      echo "  - use: deerflow.community.image_search.tools:image_search_tool" >> /app/backend/config.yaml
-      echo "  - use: deerflow.sandbox.tools:ls_tool" >> /app/backend/config.yaml
-      echo "  - use: deerflow.sandbox.tools:read_file_tool" >> /app/backend/config.yaml
-      echo "  - use: deerflow.sandbox.tools:glob_tool" >> /app/backend/config.yaml
-      echo "  - use: deerflow.sandbox.tools:grep_tool" >> /app/backend/config.yaml
-      echo "  - use: deerflow.sandbox.tools:write_file_tool" >> /app/backend/config.yaml
-      echo "  - use: deerflow.sandbox.tools:str_replace_tool" >> /app/backend/config.yaml
-      echo "  - use: deerflow.sandbox.tools:bash_tool" >> /app/backend/config.yaml
+      echo "  - name: web_search" >> /app/backend/config.yaml
+      echo "    group: web" >> /app/backend/config.yaml
+      echo "    use: deerflow.community.ddg_search.tools:web_search_tool" >> /app/backend/config.yaml
+      echo "  - name: web_fetch" >> /app/backend/config.yaml
+      echo "    group: web" >> /app/backend/config.yaml
+      echo "    use: deerflow.community.jina_ai.tools:web_fetch_tool" >> /app/backend/config.yaml
+      echo "  - name: image_search" >> /app/backend/config.yaml
+      echo "    group: web" >> /app/backend/config.yaml
+      echo "    use: deerflow.community.image_search.tools:image_search_tool" >> /app/backend/config.yaml
+      echo "  - name: ls" >> /app/backend/config.yaml
+      echo "    group: file:read" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:ls_tool" >> /app/backend/config.yaml
+      echo "  - name: read_file" >> /app/backend/config.yaml
+      echo "    group: file:read" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:read_file_tool" >> /app/backend/config.yaml
+      echo "  - name: glob" >> /app/backend/config.yaml
+      echo "    group: file:read" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:glob_tool" >> /app/backend/config.yaml
+      echo "  - name: grep" >> /app/backend/config.yaml
+      echo "    group: file:read" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:grep_tool" >> /app/backend/config.yaml
+      echo "  - name: write_file" >> /app/backend/config.yaml
+      echo "    group: file:write" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:write_file_tool" >> /app/backend/config.yaml
+      echo "  - name: str_replace" >> /app/backend/config.yaml
+      echo "    group: file:write" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:str_replace_tool" >> /app/backend/config.yaml
+      echo "  - name: bash" >> /app/backend/config.yaml
+      echo "    group: bash" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:bash_tool" >> /app/backend/config.yaml
       echo "memory:" >> /app/backend/config.yaml
       echo "  enabled: true" >> /app/backend/config.yaml
       echo "  storage_path: memory.json" >> /app/backend/config.yaml
