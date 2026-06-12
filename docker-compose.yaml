@@ -75,9 +75,50 @@ services:
       sh -c '
       mkdir -p /app/backend
       echo "models:" > /app/backend/config.yaml
-      echo "  - name: 9router-gateway" >> /app/backend/config.yaml
+      echo "  - name: 9router-google-fast" >> /app/backend/config.yaml
+      echo "    display_name: Google Fast" >> /app/backend/config.yaml
       echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
-      echo "    model: ${NINE_ROUTER_MODEL:-gpt-4}" >> /app/backend/config.yaml
+      echo "    model: google-fast" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "  - name: 9router-google-pro" >> /app/backend/config.yaml
+      echo "    display_name: Google Pro" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: google-pro" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "  - name: 9router-claude" >> /app/backend/config.yaml
+      echo "    display_name: Claude" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: claude" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "  - name: 9router-deepseek" >> /app/backend/config.yaml
+      echo "    display_name: Deepseek" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: deepseek" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "  - name: 9router-qwen" >> /app/backend/config.yaml
+      echo "    display_name: Qwen" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: qwen" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "  - name: 9router-everything-else" >> /app/backend/config.yaml
+      echo "    display_name: Everything Else" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: everything-else" >> /app/backend/config.yaml
       echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
       echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
       echo "    max_tokens: 8192" >> /app/backend/config.yaml
