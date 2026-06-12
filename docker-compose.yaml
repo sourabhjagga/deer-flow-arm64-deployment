@@ -145,6 +145,8 @@ services:
       - NINE_ROUTER_MODEL=${NINE_ROUTER_MODEL:-gpt-4}
     networks:
       - deer-flow
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
 volumes:
