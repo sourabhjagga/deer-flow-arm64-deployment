@@ -7,10 +7,42 @@ services:
     container_name: deer-flow-nginx
     ports:
       - "2026:2026"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf.template:ro
     command: >
-      sh -c "cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf
+      sh -c "cat > /etc/nginx/nginx.conf <<'NGINXEOF'
+      events { worker_connections 1024; }
+      http {
+        upstream frontend { server frontend:3000; }
+        upstream gateway { server gateway:8001; }
+        server {
+          listen 2026;
+          server_name _;
+          client_max_body_size 100M;
+          location / {
+            proxy_pass http://frontend;
+            proxy_set_header Host \$$host;
+            proxy_set_header X-Real-IP \$$remote_addr;
+            proxy_set_header X-Forwarded-For \$$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$$scheme;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade \$$http_upgrade;
+            proxy_set_header Connection \"upgrade\";
+          }
+          location /api/ {
+            proxy_pass http://gateway;
+            proxy_set_header Host \$$host;
+            proxy_set_header X-Real-IP \$$remote_addr;
+            proxy_set_header X-Forwarded-For \$$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$$scheme;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade \$$http_upgrade;
+            proxy_set_header Connection \"upgrade\";
+            proxy_read_timeout 3600;
+            proxy_buffering off;
+          }
+          location /health { proxy_pass http://gateway; }
+        }
+      }
+      NGINXEOF
       && nginx -g 'daemon off;'"
     depends_on:
       - frontend
@@ -18,11 +50,6 @@ services:
     networks:
       - deer-flow
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:2026"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
   # Frontend Web UI
   frontend:
@@ -31,26 +58,63 @@ services:
     environment:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - DEER_FLOW_INTERNAL_GATEWAY_BASE_URL=http://gateway:8001
-    env_file:
-      - .env
     networks:
       - deer-flow
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
-  # Gateway API + Agent Runtime
+  # Gateway API + Agent Runtime  
   gateway:
     image: sourabhjagga/deer-flow-backend:latest
     container_name: deer-flow-gateway
-    command: sh -c "cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 1"
+    command: >
+      sh -c "
+      mkdir -p /app/backend &&
+      if [ ! -f /app/backend/config.yaml ]; then
+        cat > /app/backend/config.yaml <<'CFGEOF'
+      models:
+        - name: 9router-gateway
+          use: langchain_openai:ChatOpenAI
+          model: \$${NINE_ROUTER_MODEL:-gpt-4}
+          api_key: \$${NINE_ROUTER_API_KEY}
+          base_url: \$${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}
+          max_tokens: 8192
+          supports_vision: true
+          default_request_timeout: 600.0
+          max_retries: 2
+      sandbox:
+        use: deerflow.sandbox.local:LocalSandboxProvider
+        allow_host_bash: true
+      tools:
+        - use: deerflow.community.ddg_search.tools:web_search_tool
+        - use: deerflow.community.jina_ai.tools:web_fetch_tool
+        - use: deerflow.community.image_search.tools:image_search_tool
+        - use: deerflow.sandbox.tools:ls_tool
+        - use: deerflow.sandbox.tools:read_file_tool
+        - use: deerflow.sandbox.tools:glob_tool
+        - use: deerflow.sandbox.tools:grep_tool
+        - use: deerflow.sandbox.tools:write_file_tool
+        - use: deerflow.sandbox.tools:str_replace_tool
+        - use: deerflow.sandbox.tools:bash_tool
+      memory:
+        enabled: true
+        storage_path: memory.json
+        debounce_seconds: 30
+        max_facts: 100
+        injection_enabled: true
+        max_injection_tokens: 2000
+      checkpointer:
+        type: sqlite
+        connection_string: checkpoints.db
+      skills:
+        container_path: /mnt/skills
+      CFGEOF
+      fi &&
+      if [ ! -f /app/backend/extensions_config.json ]; then
+        echo '{\"mcpServers\":{},\"skills\":{}}' > /app/backend/extensions_config.json
+      fi &&
+      cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 1
+      "
     volumes:
-      - ./config.yaml:/app/backend/config.yaml:ro
-      - ./extensions_config.json:/app/backend/extensions_config.json:ro
-      - ./skills:/app/skills:ro
       - deer-flow-data:/app/backend/.deer-flow
       - /var/run/docker.sock:/var/run/docker.sock
       - /:/host:ro
@@ -64,18 +128,12 @@ services:
       - DEER_FLOW_CHANNELS_LANGGRAPH_URL=http://gateway:8001/api
       - DEER_FLOW_CHANNELS_GATEWAY_URL=http://gateway:8001
       - NO_PROXY=localhost,127.0.0.1,::1,gateway,frontend,nginx,host.docker.internal
-    env_file:
-      - .env
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - NINE_ROUTER_API_KEY=${NINE_ROUTER_API_KEY:-placeholder}
+      - NINE_ROUTER_BASE_URL=${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}
+      - NINE_ROUTER_MODEL=${NINE_ROUTER_MODEL:-gpt-4}
     networks:
       - deer-flow
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
 
 volumes:
   deer-flow-data:
