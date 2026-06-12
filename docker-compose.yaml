@@ -1,49 +1,45 @@
 version: '3.8'
 
 services:
-  # Reverse Proxy
   nginx:
     image: nginx:alpine
     container_name: deer-flow-nginx
     ports:
       - "2026:2026"
-    command: >
-      sh -c "cat > /etc/nginx/nginx.conf <<'NGINXEOF'
+    command: |
+      sh -c '
+      cat > /etc/nginx/nginx.conf << "NGINXCONF"
       events { worker_connections 1024; }
       http {
         upstream frontend { server frontend:3000; }
         upstream gateway { server gateway:8001; }
         server {
           listen 2026;
-          server_name _;
           client_max_body_size 100M;
           location / {
             proxy_pass http://frontend;
-            proxy_set_header Host \$$host;
-            proxy_set_header X-Real-IP \$$remote_addr;
-            proxy_set_header X-Forwarded-For \$$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$$scheme;
+            proxy_set_header Host $$host;
+            proxy_set_header X-Real-IP $$remote_addr;
             proxy_http_version 1.1;
-            proxy_set_header Upgrade \$$http_upgrade;
-            proxy_set_header Connection \"upgrade\";
+            proxy_set_header Upgrade $$http_upgrade;
+            proxy_set_header Connection "upgrade";
           }
           location /api/ {
             proxy_pass http://gateway;
-            proxy_set_header Host \$$host;
-            proxy_set_header X-Real-IP \$$remote_addr;
-            proxy_set_header X-Forwarded-For \$$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$$scheme;
+            proxy_set_header Host $$host;
+            proxy_set_header X-Real-IP $$remote_addr;
             proxy_http_version 1.1;
-            proxy_set_header Upgrade \$$http_upgrade;
-            proxy_set_header Connection \"upgrade\";
+            proxy_set_header Upgrade $$http_upgrade;
+            proxy_set_header Connection "upgrade";
             proxy_read_timeout 3600;
             proxy_buffering off;
           }
           location /health { proxy_pass http://gateway; }
         }
       }
-      NGINXEOF
-      && nginx -g 'daemon off;'"
+      NGINXCONF
+      nginx -g "daemon off;"
+      '
     depends_on:
       - frontend
       - gateway
@@ -51,7 +47,6 @@ services:
       - deer-flow
     restart: unless-stopped
 
-  # Frontend Web UI
   frontend:
     image: sourabhjagga/deer-flow-frontend:latest
     container_name: deer-flow-frontend
@@ -62,72 +57,53 @@ services:
       - deer-flow
     restart: unless-stopped
 
-  # Gateway API + Agent Runtime  
   gateway:
     image: sourabhjagga/deer-flow-backend:latest
     container_name: deer-flow-gateway
-    command: >
-      sh -c "
-      mkdir -p /app/backend &&
-      if [ ! -f /app/backend/config.yaml ]; then
-        cat > /app/backend/config.yaml <<'CFGEOF'
-      models:
-        - name: 9router-gateway
-          use: langchain_openai:ChatOpenAI
-          model: \$${NINE_ROUTER_MODEL:-gpt-4}
-          api_key: \$${NINE_ROUTER_API_KEY}
-          base_url: \$${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}
-          max_tokens: 8192
-          supports_vision: true
-          default_request_timeout: 600.0
-          max_retries: 2
-      sandbox:
-        use: deerflow.sandbox.local:LocalSandboxProvider
-        allow_host_bash: true
-      tools:
-        - use: deerflow.community.ddg_search.tools:web_search_tool
-        - use: deerflow.community.jina_ai.tools:web_fetch_tool
-        - use: deerflow.community.image_search.tools:image_search_tool
-        - use: deerflow.sandbox.tools:ls_tool
-        - use: deerflow.sandbox.tools:read_file_tool
-        - use: deerflow.sandbox.tools:glob_tool
-        - use: deerflow.sandbox.tools:grep_tool
-        - use: deerflow.sandbox.tools:write_file_tool
-        - use: deerflow.sandbox.tools:str_replace_tool
-        - use: deerflow.sandbox.tools:bash_tool
-      memory:
-        enabled: true
-        storage_path: memory.json
-        debounce_seconds: 30
-        max_facts: 100
-        injection_enabled: true
-        max_injection_tokens: 2000
-      checkpointer:
-        type: sqlite
-        connection_string: checkpoints.db
-      skills:
-        container_path: /mnt/skills
-      CFGEOF
-      fi &&
-      if [ ! -f /app/backend/extensions_config.json ]; then
-        echo '{\"mcpServers\":{},\"skills\":{}}' > /app/backend/extensions_config.json
-      fi &&
-      cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 1
-      "
+    entrypoint: |
+      sh -c '
+      mkdir -p /app/backend
+      echo "models:" > /app/backend/config.yaml
+      echo "  - name: 9router-gateway" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: ${NINE_ROUTER_MODEL:-gpt-4}" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "sandbox:" >> /app/backend/config.yaml
+      echo "  use: deerflow.sandbox.local:LocalSandboxProvider" >> /app/backend/config.yaml
+      echo "  allow_host_bash: true" >> /app/backend/config.yaml
+      echo "tools:" >> /app/backend/config.yaml
+      echo "  - use: deerflow.community.ddg_search.tools:web_search_tool" >> /app/backend/config.yaml
+      echo "  - use: deerflow.community.jina_ai.tools:web_fetch_tool" >> /app/backend/config.yaml
+      echo "  - use: deerflow.community.image_search.tools:image_search_tool" >> /app/backend/config.yaml
+      echo "  - use: deerflow.sandbox.tools:ls_tool" >> /app/backend/config.yaml
+      echo "  - use: deerflow.sandbox.tools:read_file_tool" >> /app/backend/config.yaml
+      echo "  - use: deerflow.sandbox.tools:glob_tool" >> /app/backend/config.yaml
+      echo "  - use: deerflow.sandbox.tools:grep_tool" >> /app/backend/config.yaml
+      echo "  - use: deerflow.sandbox.tools:write_file_tool" >> /app/backend/config.yaml
+      echo "  - use: deerflow.sandbox.tools:str_replace_tool" >> /app/backend/config.yaml
+      echo "  - use: deerflow.sandbox.tools:bash_tool" >> /app/backend/config.yaml
+      echo "memory:" >> /app/backend/config.yaml
+      echo "  enabled: true" >> /app/backend/config.yaml
+      echo "  storage_path: memory.json" >> /app/backend/config.yaml
+      echo "checkpointer:" >> /app/backend/config.yaml
+      echo "  type: sqlite" >> /app/backend/config.yaml
+      echo "  connection_string: checkpoints.db" >> /app/backend/config.yaml
+      echo "skills:" >> /app/backend/config.yaml
+      echo "  container_path: /mnt/skills" >> /app/backend/config.yaml
+      echo "{\"mcpServers\":{},\"skills\":{}}" > /app/backend/extensions_config.json
+      cd /app/backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 1
+      '
     volumes:
       - deer-flow-data:/app/backend/.deer-flow
       - /var/run/docker.sock:/var/run/docker.sock
       - /:/host:ro
-    working_dir: /app
     environment:
-      - CI=true
-      - DEER_FLOW_PROJECT_ROOT=/app
-      - DEER_FLOW_HOME=/app/backend/.deer-flow
       - DEER_FLOW_CONFIG_PATH=/app/backend/config.yaml
       - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/backend/extensions_config.json
-      - DEER_FLOW_CHANNELS_LANGGRAPH_URL=http://gateway:8001/api
-      - DEER_FLOW_CHANNELS_GATEWAY_URL=http://gateway:8001
-      - NO_PROXY=localhost,127.0.0.1,::1,gateway,frontend,nginx,host.docker.internal
+      - DEER_FLOW_HOME=/app/backend/.deer-flow
       - NINE_ROUTER_API_KEY=${NINE_ROUTER_API_KEY:-placeholder}
       - NINE_ROUTER_BASE_URL=${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}
       - NINE_ROUTER_MODEL=${NINE_ROUTER_MODEL:-gpt-4}
