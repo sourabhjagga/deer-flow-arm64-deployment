@@ -71,9 +71,115 @@ services:
   gateway:
     image: sourabhjagga/deer-flow-backend:latest
     container_name: deer-flow-gateway
-    entrypoint: ["/bin/sh", "/app/setup-skills.sh"]
+    entrypoint: |
+      sh -c '
+      mkdir -p /app/backend
+      echo "models:" > /app/backend/config.yaml
+      echo "  - name: 9router-google-fast" >> /app/backend/config.yaml
+      echo "    display_name: Google Fast" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: google-fast" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "  - name: 9router-google-pro" >> /app/backend/config.yaml
+      echo "    display_name: Google Pro" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: google-pro" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "  - name: 9router-claude" >> /app/backend/config.yaml
+      echo "    display_name: Claude" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: claude" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "  - name: 9router-deepseek" >> /app/backend/config.yaml
+      echo "    display_name: Deepseek" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: deepseek" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "  - name: 9router-qwen" >> /app/backend/config.yaml
+      echo "    display_name: Qwen" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: qwen" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "  - name: 9router-everything-else" >> /app/backend/config.yaml
+      echo "    display_name: Everything Else" >> /app/backend/config.yaml
+      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    model: everything-else" >> /app/backend/config.yaml
+      echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
+      echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
+      echo "    max_tokens: 8192" >> /app/backend/config.yaml
+      echo "    supports_vision: true" >> /app/backend/config.yaml
+      echo "tool_groups:" >> /app/backend/config.yaml
+      echo "  - name: web" >> /app/backend/config.yaml
+      echo "  - name: file:read" >> /app/backend/config.yaml
+      echo "  - name: file:write" >> /app/backend/config.yaml
+      echo "  - name: bash" >> /app/backend/config.yaml
+      echo "sandbox:" >> /app/backend/config.yaml
+      echo "  use: deerflow.sandbox.local:LocalSandboxProvider" >> /app/backend/config.yaml
+      echo "  allow_host_bash: true" >> /app/backend/config.yaml
+      echo "tools:" >> /app/backend/config.yaml
+      echo "  - name: web_search" >> /app/backend/config.yaml
+      echo "    group: web" >> /app/backend/config.yaml
+      echo "    use: deerflow.community.ddg_search.tools:web_search_tool" >> /app/backend/config.yaml
+      echo "  - name: web_fetch" >> /app/backend/config.yaml
+      echo "    group: web" >> /app/backend/config.yaml
+      echo "    use: deerflow.community.jina_ai.tools:web_fetch_tool" >> /app/backend/config.yaml
+      echo "  - name: image_search" >> /app/backend/config.yaml
+      echo "    group: web" >> /app/backend/config.yaml
+      echo "    use: deerflow.community.image_search.tools:image_search_tool" >> /app/backend/config.yaml
+      echo "  - name: ls" >> /app/backend/config.yaml
+      echo "    group: file:read" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:ls_tool" >> /app/backend/config.yaml
+      echo "  - name: read_file" >> /app/backend/config.yaml
+      echo "    group: file:read" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:read_file_tool" >> /app/backend/config.yaml
+      echo "  - name: glob" >> /app/backend/config.yaml
+      echo "    group: file:read" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:glob_tool" >> /app/backend/config.yaml
+      echo "  - name: grep" >> /app/backend/config.yaml
+      echo "    group: file:read" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:grep_tool" >> /app/backend/config.yaml
+      echo "  - name: write_file" >> /app/backend/config.yaml
+      echo "    group: file:write" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:write_file_tool" >> /app/backend/config.yaml
+      echo "  - name: str_replace" >> /app/backend/config.yaml
+      echo "    group: file:write" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:str_replace_tool" >> /app/backend/config.yaml
+      echo "  - name: bash" >> /app/backend/config.yaml
+      echo "    group: bash" >> /app/backend/config.yaml
+      echo "    use: deerflow.sandbox.tools:bash_tool" >> /app/backend/config.yaml
+      echo "memory:" >> /app/backend/config.yaml
+      echo "  enabled: true" >> /app/backend/config.yaml
+      echo "  storage_path: memory.json" >> /app/backend/config.yaml
+      echo "checkpointer:" >> /app/backend/config.yaml
+      echo "  type: sqlite" >> /app/backend/config.yaml
+      echo "  connection_string: checkpoints.db" >> /app/backend/config.yaml
+      echo "skills:" >> /app/backend/config.yaml
+      echo "  path: /mnt/skills" >> /app/backend/config.yaml
+      echo "  container_path: /mnt/skills" >> /app/backend/config.yaml
+      echo "{\"mcpServers\":{},\"skills\":{}}" > /app/backend/extensions_config.json
+      if [ ! -d /mnt/skills/public/deep-research ]; then
+        echo "Downloading built-in skills..."
+        mkdir -p /mnt/skills/public /mnt/skills/custom
+        python3 -c "import urllib.request, tarfile, io; req = urllib.request.Request('https://github.com/bytedance/deer-flow/archive/refs/heads/main.tar.gz', headers={'User-Agent': 'Mozilla/5.0'}); tar = tarfile.open(fileobj=io.BytesIO(urllib.request.urlopen(req).read()), mode='r:gz'); [tar.extract(m, '/mnt/skills/public') for m in tar.getmembers() if m.name.startswith('deer-flow-main/skills/public/') and not m.name.replace('deer-flow-main/skills/public/', '', 1) == '' and not setattr(m, 'name', m.name.replace('deer-flow-main/skills/public/', '', 1))]" || echo "Failed to download skills"
+      fi
+      cd /app/backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 1
+      '
     volumes:
-      - ./setup-skills.sh:/app/setup-skills.sh:ro
       - deer-flow-data:/app/backend/.deer-flow
       - /var/run/docker.sock:/var/run/docker.sock
       - /:/host:ro
