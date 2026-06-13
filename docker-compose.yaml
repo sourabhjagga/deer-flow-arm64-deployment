@@ -187,6 +187,7 @@ services:
       - DEER_FLOW_CONFIG_PATH=/app/backend/config.yaml
       - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/backend/extensions_config.json
       - DEER_FLOW_HOME=/app/backend/.deer-flow
+      - DEER_FLOW_SKILLS_PATH=/mnt/skills
       - NINE_ROUTER_API_KEY=${NINE_ROUTER_API_KEY:-placeholder}
       - NINE_ROUTER_BASE_URL=${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}
       - NINE_ROUTER_MODEL=${NINE_ROUTER_MODEL:-gpt-4}
