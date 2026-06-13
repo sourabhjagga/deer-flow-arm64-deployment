@@ -171,12 +171,12 @@ services:
       echo "skills:" >> /app/backend/config.yaml
       echo "  path: /mnt/skills" >> /app/backend/config.yaml
       echo "  container_path: /mnt/skills" >> /app/backend/config.yaml
-      echo "{\"mcpServers\":{},\"skills\":{}}" > /app/backend/extensions_config.json
       if [ ! -d /mnt/skills/public/deep-research ]; then
         echo "Downloading built-in skills..."
         mkdir -p /mnt/skills/public /mnt/skills/custom
         python3 -c "import urllib.request, tarfile, io; req = urllib.request.Request('https://github.com/bytedance/deer-flow/archive/refs/heads/main.tar.gz', headers={'User-Agent': 'Mozilla/5.0'}); tar = tarfile.open(fileobj=io.BytesIO(urllib.request.urlopen(req).read()), mode='r:gz'); [tar.extract(m, '/mnt/skills/public') for m in tar.getmembers() if m.name.startswith('deer-flow-main/skills/public/') and not m.name.replace('deer-flow-main/skills/public/', '', 1) == '' and not setattr(m, 'name', m.name.replace('deer-flow-main/skills/public/', '', 1))]" || echo "Failed to download skills"
       fi
+      python3 -c 'import os, json; d="/mnt/skills/public"; s={f: {"enabled": True} for f in os.listdir(d) if os.path.isdir(os.path.join(d, f))} if os.path.exists(d) else {}; json.dump({"mcpServers": {}, "skills": s}, open("/app/backend/extensions_config.json", "w"))'
       cd /app/backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 1
       '
     volumes:
