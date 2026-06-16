@@ -10,6 +10,7 @@ models:
     base_url: ${NINE_ROUTER_BASE_URL:-http://localhost:9000/v1}
     max_tokens: 8192
     supports_vision: true
+    supports_thinking: true
     default_request_timeout: 600.0
     max_retries: 2
 
