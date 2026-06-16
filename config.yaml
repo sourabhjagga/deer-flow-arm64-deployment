@@ -58,3 +58,7 @@ checkpointer:
 # Skills configuration (17 built-in skills auto-loaded)
 skills:
   container_path: /mnt/skills
+
+agents_api:
+  enabled: true
+
