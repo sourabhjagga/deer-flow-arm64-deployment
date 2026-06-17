@@ -200,6 +200,7 @@ services:
       cd /app/backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 1
       '
     volumes:
+      - ./skills:/mnt/skills
       - deer-flow-data:/app/backend/.deer-flow
       - /var/run/docker.sock:/var/run/docker.sock
       - /:/host:ro
