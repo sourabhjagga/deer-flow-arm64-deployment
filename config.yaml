@@ -2,9 +2,11 @@
 # SECURITY WARNING: Agent has direct access to Oracle VM filesystem
 # Set allow_host_bash: true enables bash commands on host
 
+config_version: 1
+
 models:
   - name: 9router-gateway
-    use: langchain_openai:ChatOpenAI
+    use: deerflow.models.patched_openai:PatchedChatOpenAI
     model: ${NINE_ROUTER_MODEL:-gpt-4}
     api_key: ${NINE_ROUTER_API_KEY}
     base_url: ${NINE_ROUTER_BASE_URL:-http://localhost:9000/v1}
@@ -21,26 +23,42 @@ sandbox:
   allow_host_bash: true
 
 # All tools enabled
+tool_groups:
+  - name: web
+  - name: file:read
+  - name: file:write
+  - name: bash
+
 tools:
   # Web search (free, no API key needed)
   - use: deerflow.community.ddg_search.tools:web_search_tool
+    group: web
   
   # Web fetch (page content extraction)
   - use: deerflow.community.jina_ai.tools:web_fetch_tool
+    group: web
   
   # Image search
   - use: deerflow.community.image_search.tools:image_search_tool
+    group: web
   
   # File operations
   - use: deerflow.sandbox.tools:ls_tool
+    group: file:read
   - use: deerflow.sandbox.tools:read_file_tool
+    group: file:read
   - use: deerflow.sandbox.tools:glob_tool
+    group: file:read
   - use: deerflow.sandbox.tools:grep_tool
+    group: file:read
   - use: deerflow.sandbox.tools:write_file_tool
+    group: file:write
   - use: deerflow.sandbox.tools:str_replace_tool
+    group: file:write
   
   # Bash execution (runs directly on host - requires allow_host_bash: true)
   - use: deerflow.sandbox.tools:bash_tool
+    group: bash
 
 # Long-term memory enabled
 memory:
@@ -50,6 +68,7 @@ memory:
   max_facts: 100
   injection_enabled: true
   max_injection_tokens: 2000
+  token_counting: char
 
 # Thread state persistence (survives restarts)
 checkpointer:
@@ -63,3 +82,15 @@ skills:
 agents_api:
   enabled: true
 
+subagents:
+  enabled: true
+
+title:
+  enabled: true
+  max_words: 6
+  max_chars: 60
+
+summarization:
+  enabled: true
+  max_tokens: 12000
+  trigger_tokens: 14000

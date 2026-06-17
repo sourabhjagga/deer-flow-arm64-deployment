@@ -75,9 +75,10 @@ services:
       sh -c '
       mkdir -p /app/backend
       echo "models:" > /app/backend/config.yaml
+      echo "config_version: 1" >> /app/backend/config.yaml
       echo "  - name: 9router-google-fast" >> /app/backend/config.yaml
       echo "    display_name: Google Fast" >> /app/backend/config.yaml
-      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    use: deerflow.models.patched_openai:PatchedChatOpenAI" >> /app/backend/config.yaml
       echo "    model: google-fast" >> /app/backend/config.yaml
       echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
       echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
@@ -86,7 +87,7 @@ services:
       echo "    supports_thinking: true" >> /app/backend/config.yaml
       echo "  - name: 9router-google-pro" >> /app/backend/config.yaml
       echo "    display_name: Google Pro" >> /app/backend/config.yaml
-      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    use: deerflow.models.patched_openai:PatchedChatOpenAI" >> /app/backend/config.yaml
       echo "    model: google-pro" >> /app/backend/config.yaml
       echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
       echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
@@ -95,7 +96,7 @@ services:
       echo "    supports_thinking: true" >> /app/backend/config.yaml
       echo "  - name: 9router-claude" >> /app/backend/config.yaml
       echo "    display_name: Claude" >> /app/backend/config.yaml
-      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    use: deerflow.models.patched_openai:PatchedChatOpenAI" >> /app/backend/config.yaml
       echo "    model: claude" >> /app/backend/config.yaml
       echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
       echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
@@ -104,7 +105,7 @@ services:
       echo "    supports_thinking: true" >> /app/backend/config.yaml
       echo "  - name: 9router-deepseek" >> /app/backend/config.yaml
       echo "    display_name: Deepseek" >> /app/backend/config.yaml
-      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    use: deerflow.models.patched_openai:PatchedChatOpenAI" >> /app/backend/config.yaml
       echo "    model: deepseek" >> /app/backend/config.yaml
       echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
       echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
@@ -113,7 +114,7 @@ services:
       echo "    supports_thinking: true" >> /app/backend/config.yaml
       echo "  - name: 9router-qwen" >> /app/backend/config.yaml
       echo "    display_name: Qwen" >> /app/backend/config.yaml
-      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    use: deerflow.models.patched_openai:PatchedChatOpenAI" >> /app/backend/config.yaml
       echo "    model: qwen" >> /app/backend/config.yaml
       echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
       echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
@@ -122,7 +123,7 @@ services:
       echo "    supports_thinking: true" >> /app/backend/config.yaml
       echo "  - name: 9router-everything-else" >> /app/backend/config.yaml
       echo "    display_name: Everything Else" >> /app/backend/config.yaml
-      echo "    use: langchain_openai:ChatOpenAI" >> /app/backend/config.yaml
+      echo "    use: deerflow.models.patched_openai:PatchedChatOpenAI" >> /app/backend/config.yaml
       echo "    model: everything-else" >> /app/backend/config.yaml
       echo "    api_key: ${NINE_ROUTER_API_KEY:-placeholder}" >> /app/backend/config.yaml
       echo "    base_url: ${NINE_ROUTER_BASE_URL:-http://9router:9000/v1}" >> /app/backend/config.yaml
@@ -171,6 +172,7 @@ services:
       echo "memory:" >> /app/backend/config.yaml
       echo "  enabled: true" >> /app/backend/config.yaml
       echo "  storage_path: memory.json" >> /app/backend/config.yaml
+      echo "  token_counting: char" >> /app/backend/config.yaml
       echo "checkpointer:" >> /app/backend/config.yaml
       echo "  type: sqlite" >> /app/backend/config.yaml
       echo "  connection_string: checkpoints.db" >> /app/backend/config.yaml
@@ -185,6 +187,16 @@ services:
       python3 -c "import os, json; d=\"/mnt/skills/public\"; s={f: {\"enabled\": True} for f in os.listdir(d) if os.path.isdir(os.path.join(d, f))} if os.path.exists(d) else {}; open(\"/app/backend/extensions_config.json\", \"w\").write(json.dumps({\"mcpServers\": {}, \"skills\": s}))"
       echo "agents_api:" >> /app/backend/config.yaml
       echo "  enabled: true" >> /app/backend/config.yaml
+      echo "subagents:" >> /app/backend/config.yaml
+      echo "  enabled: true" >> /app/backend/config.yaml
+      echo "title:" >> /app/backend/config.yaml
+      echo "  enabled: true" >> /app/backend/config.yaml
+      echo "  max_words: 6" >> /app/backend/config.yaml
+      echo "  max_chars: 60" >> /app/backend/config.yaml
+      echo "summarization:" >> /app/backend/config.yaml
+      echo "  enabled: true" >> /app/backend/config.yaml
+      echo "  max_tokens: 12000" >> /app/backend/config.yaml
+      echo "  trigger_tokens: 14000" >> /app/backend/config.yaml
       cd /app/backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 1
       '
     volumes:
