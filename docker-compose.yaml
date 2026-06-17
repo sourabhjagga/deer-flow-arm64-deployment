@@ -74,8 +74,8 @@ services:
     entrypoint: |
       sh -c '
       mkdir -p /app/backend
-      echo "models:" > /app/backend/config.yaml
-      echo "config_version: 1" >> /app/backend/config.yaml
+      echo "config_version: 1" > /app/backend/config.yaml
+      echo "models:" >> /app/backend/config.yaml
       echo "  - name: 9router-google-fast" >> /app/backend/config.yaml
       echo "    display_name: Google Fast" >> /app/backend/config.yaml
       echo "    use: deerflow.models.patched_openai:PatchedChatOpenAI" >> /app/backend/config.yaml
